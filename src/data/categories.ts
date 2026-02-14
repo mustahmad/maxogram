@@ -1,0 +1,133 @@
+export interface ExploreCategory {
+  id: string;
+  name: string;
+  slug: string;
+  iconName: string;
+  coverImageUrl: string;
+  description: string;
+  postCount: number;
+  trendingTags: string[];
+}
+
+export const mockCategories: ExploreCategory[] = [
+  {
+    id: "cat-1",
+    name: "Photography",
+    slug: "photography",
+    iconName: "camera",
+    coverImageUrl: "https://picsum.photos/seed/cat-photography/800/400",
+    description: "Stunning shots from photographers around the world",
+    postCount: 2340000,
+    trendingTags: ["goldenhour", "streetphotography", "portrait", "landscape", "filmisnotdead"],
+  },
+  {
+    id: "cat-2",
+    name: "Travel",
+    slug: "travel",
+    iconName: "plane",
+    coverImageUrl: "https://picsum.photos/seed/cat-travel/800/400",
+    description: "Discover new destinations and hidden gems",
+    postCount: 5670000,
+    trendingTags: ["wanderlust", "digitalnomad", "backpacking", "solotravel", "eurotrip"],
+  },
+  {
+    id: "cat-3",
+    name: "Food & Cooking",
+    slug: "food",
+    iconName: "utensils",
+    coverImageUrl: "https://picsum.photos/seed/cat-food/800/400",
+    description: "Recipes, restaurant finds, and food photography",
+    postCount: 3890000,
+    trendingTags: ["homecooking", "foodphotography", "recipe", "foodie", "farmtotable"],
+  },
+  {
+    id: "cat-4",
+    name: "Fitness & Wellness",
+    slug: "fitness",
+    iconName: "dumbbell",
+    coverImageUrl: "https://picsum.photos/seed/cat-fitness/800/400",
+    description: "Workouts, nutrition tips, and wellness inspiration",
+    postCount: 4120000,
+    trendingTags: ["workout", "yoga", "hiit", "mindfulness", "nutrition"],
+  },
+  {
+    id: "cat-5",
+    name: "Art & Design",
+    slug: "art",
+    iconName: "palette",
+    coverImageUrl: "https://picsum.photos/seed/cat-art/800/400",
+    description: "Digital art, illustrations, and creative design",
+    postCount: 1890000,
+    trendingTags: ["digitalart", "illustration", "procreate", "conceptart", "graphicdesign"],
+  },
+  {
+    id: "cat-6",
+    name: "Technology",
+    slug: "tech",
+    iconName: "laptop",
+    coverImageUrl: "https://picsum.photos/seed/cat-tech/800/400",
+    description: "Latest in tech, coding, and digital innovation",
+    postCount: 2100000,
+    trendingTags: ["programming", "webdev", "typescript", "opensource", "buildinpublic"],
+  },
+  {
+    id: "cat-7",
+    name: "Books & Literature",
+    slug: "books",
+    iconName: "book-open",
+    coverImageUrl: "https://picsum.photos/seed/cat-books/800/400",
+    description: "Book reviews, reading lists, and literary discussions",
+    postCount: 890000,
+    trendingTags: ["bookstagram", "bookreview", "reading", "scifi", "currentlyreading"],
+  },
+  {
+    id: "cat-8",
+    name: "Music",
+    slug: "music",
+    iconName: "music",
+    coverImageUrl: "https://picsum.photos/seed/cat-music/800/400",
+    description: "Discover new artists, playlists, and music culture",
+    postCount: 3450000,
+    trendingTags: ["newmusic", "vinyl", "playlist", "livemusic", "producer"],
+  },
+  {
+    id: "cat-9",
+    name: "Nature",
+    slug: "nature",
+    iconName: "leaf",
+    coverImageUrl: "https://picsum.photos/seed/cat-nature/800/400",
+    description: "Wildlife, landscapes, and the natural world",
+    postCount: 4560000,
+    trendingTags: ["naturephotography", "wildlife", "sunset", "mountains", "ocean"],
+  },
+  {
+    id: "cat-10",
+    name: "Fashion & Style",
+    slug: "fashion",
+    iconName: "shirt",
+    coverImageUrl: "https://picsum.photos/seed/cat-fashion/800/400",
+    description: "Street style, outfit inspiration, and fashion trends",
+    postCount: 6780000,
+    trendingTags: ["ootd", "streetstyle", "sustainable", "thrifted", "fashionweek"],
+  },
+  {
+    id: "cat-11",
+    name: "Architecture",
+    slug: "architecture",
+    iconName: "building",
+    coverImageUrl: "https://picsum.photos/seed/cat-architecture/800/400",
+    description: "Remarkable buildings, interiors, and urban spaces",
+    postCount: 1230000,
+    trendingTags: ["architecture", "interior", "moderndesign", "brutalism", "urbandesign"],
+  },
+  {
+    id: "cat-12",
+    name: "Gaming",
+    slug: "gaming",
+    iconName: "gamepad",
+    coverImageUrl: "https://picsum.photos/seed/cat-gaming/800/400",
+    description: "Game highlights, reviews, and gaming community",
+    postCount: 5430000,
+    trendingTags: ["gaming", "indiegame", "gamedev", "streaming", "esports"],
+  },
+];
