@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { User } from "@/types";
+import { allUsers, currentMockUser } from "@/data/users";
 
 interface AuthState {
   user: User | null;
@@ -24,27 +25,24 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isLoading: false,
 
-      login: async (email: string, password: string) => {
+      login: async (email: string, _password: string) => {
         set({ isLoading: true });
-        try {
-          const res = await fetch("/api/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-          });
+        await new Promise((r) => setTimeout(r, 300));
 
-          if (!res.ok) {
-            const error = await res.json();
-            throw new Error(error.message || "Login failed");
-          }
+        const found = allUsers.find(
+          (u) => u.email?.toLowerCase() === email.toLowerCase()
+        );
 
-          const json = await res.json();
-          const payload = json.data ?? json;
-          set({ user: payload.user, token: payload.token, isLoading: false });
-        } catch (error) {
+        if (!found) {
           set({ isLoading: false });
-          throw error;
+          throw new Error("Invalid email or password");
         }
+
+        set({
+          user: found,
+          token: "mock-jwt-token",
+          isLoading: false,
+        });
       },
 
       register: async (data: {
@@ -54,25 +52,38 @@ export const useAuthStore = create<AuthState>()(
         fullName: string;
       }) => {
         set({ isLoading: true });
-        try {
-          const res = await fetch("/api/auth/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          });
+        await new Promise((r) => setTimeout(r, 300));
 
-          if (!res.ok) {
-            const error = await res.json();
-            throw new Error(error.message || "Registration failed");
-          }
-
-          const json = await res.json();
-          const payload = json.data ?? json;
-          set({ user: payload.user, token: payload.token, isLoading: false });
-        } catch (error) {
+        const existingEmail = allUsers.find(
+          (u) => u.email?.toLowerCase() === data.email.toLowerCase()
+        );
+        if (existingEmail) {
           set({ isLoading: false });
-          throw error;
+          throw new Error("Email already in use");
         }
+
+        const existingUsername = allUsers.find(
+          (u) => u.username.toLowerCase() === data.username.toLowerCase()
+        );
+        if (existingUsername) {
+          set({ isLoading: false });
+          throw new Error("Username already taken");
+        }
+
+        // For static mock, just return the current mock user with overridden fields
+        const newUser: User = {
+          ...currentMockUser,
+          id: `user-${Date.now()}`,
+          username: data.username,
+          displayName: data.fullName,
+          email: data.email,
+        };
+
+        set({
+          user: newUser,
+          token: "mock-jwt-token",
+          isLoading: false,
+        });
       },
 
       logout: () => {
@@ -87,22 +98,11 @@ export const useAuthStore = create<AuthState>()(
         }
 
         set({ isLoading: true });
-        try {
-          const res = await fetch("/api/auth/me", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+        await new Promise((r) => setTimeout(r, 300));
 
-          if (!res.ok) {
-            set({ user: null, token: null, isLoading: false });
-            return;
-          }
-
-          const json = await res.json();
-          const payload = json.data ?? json;
-          set({ user: payload.user ?? payload, isLoading: false });
-        } catch {
-          set({ user: null, token: null, isLoading: false });
-        }
+        // If we have a persisted token, restore the persisted user or fall back to current mock user
+        const { user } = get();
+        set({ user: user ?? currentMockUser, isLoading: false });
       },
     }),
     {

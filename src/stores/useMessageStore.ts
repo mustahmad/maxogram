@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Conversation, Message } from "@/types";
+import { mockConversations, getMessagesByConversation } from "@/data/messages";
 
 interface MessageState {
   conversations: Conversation[];
@@ -20,32 +21,20 @@ export const useMessageStore = create<MessageState>()((set, get) => ({
 
   fetchConversations: async () => {
     set({ isLoading: true });
-    try {
-      const res = await fetch("/api/messages");
-      if (!res.ok) throw new Error("Failed to fetch conversations");
-      const data = await res.json();
-      set({ conversations: data.data ?? data.conversations ?? [], isLoading: false });
-    } catch {
-      set({ isLoading: false });
-    }
+    await new Promise((r) => setTimeout(r, 300));
+    set({ conversations: [...mockConversations], isLoading: false });
   },
 
   fetchMessages: async (conversationId: string) => {
     set({ isLoading: true });
-    try {
-      const res = await fetch(`/api/messages/${conversationId}`);
-      if (!res.ok) throw new Error("Failed to fetch messages");
-      const data = await res.json();
-      set({ messages: data.data ?? data.messages ?? [], isLoading: false });
-    } catch {
-      set({ isLoading: false });
-    }
+    await new Promise((r) => setTimeout(r, 300));
+    const msgs = getMessagesByConversation(conversationId);
+    set({ messages: msgs, isLoading: false });
   },
 
   sendMessage: async (conversationId: string, content: string) => {
-    const tempId = `temp-${Date.now()}`;
-    const optimisticMessage: Message = {
-      id: tempId,
+    const newMessage: Message = {
+      id: `msg-${Date.now()}`,
       conversationId,
       content,
       senderId: "current-user",
@@ -55,36 +44,13 @@ export const useMessageStore = create<MessageState>()((set, get) => ({
     };
 
     set((state) => ({
-      messages: [...state.messages, optimisticMessage],
+      messages: [...state.messages, newMessage],
       conversations: state.conversations.map((conv) =>
         conv.id === conversationId
-          ? { ...conv, lastMessage: optimisticMessage, updatedAt: new Date().toISOString() }
+          ? { ...conv, lastMessage: newMessage, updatedAt: new Date().toISOString() }
           : conv
       ),
     }));
-
-    try {
-      const res = await fetch(`/api/messages/${conversationId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
-      });
-
-      if (!res.ok) throw new Error("Failed to send message");
-
-      const data = await res.json();
-      const serverMessage = data.data ?? data.message;
-
-      set((state) => ({
-        messages: state.messages.map((msg) =>
-          msg.id === tempId ? serverMessage : msg
-        ),
-      }));
-    } catch {
-      set((state) => ({
-        messages: state.messages.filter((msg) => msg.id !== tempId),
-      }));
-    }
   },
 
   setActiveConversation: (id: string) => {

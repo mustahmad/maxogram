@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Notification } from "@/types";
+import { mockNotifications } from "@/data/notifications";
 
 interface NotificationState {
   notifications: Notification[];
@@ -17,28 +18,19 @@ export const useNotificationStore = create<NotificationState>()(
 
     fetchNotifications: async () => {
       set({ isLoading: true });
-      try {
-        const res = await fetch("/api/notifications");
-        if (!res.ok) throw new Error("Failed to fetch notifications");
+      await new Promise((r) => setTimeout(r, 300));
 
-        const json = await res.json();
-        const items: Notification[] = json.data ?? [];
-        const unread = items.filter((n) => !n.isRead).length;
+      const items = [...mockNotifications];
+      const unread = items.filter((n) => !n.isRead).length;
 
-        set({
-          notifications: items,
-          unreadCount: unread,
-          isLoading: false,
-        });
-      } catch {
-        set({ isLoading: false });
-      }
+      set({
+        notifications: items,
+        unreadCount: unread,
+        isLoading: false,
+      });
     },
 
     markAllRead: async () => {
-      const prevNotifications = get().notifications;
-      const prevUnreadCount = get().unreadCount;
-
       set({
         notifications: get().notifications.map((n) => ({
           ...n,
@@ -46,18 +38,6 @@ export const useNotificationStore = create<NotificationState>()(
         })),
         unreadCount: 0,
       });
-
-      try {
-        const res = await fetch("/api/notifications/read", {
-          method: "POST",
-        });
-        if (!res.ok) throw new Error("Failed to mark notifications as read");
-      } catch {
-        set({
-          notifications: prevNotifications,
-          unreadCount: prevUnreadCount,
-        });
-      }
     },
   })
 );

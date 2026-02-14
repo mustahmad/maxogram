@@ -1,5 +1,8 @@
 import { create } from "zustand";
 import type { Post } from "@/types";
+import { mockPosts } from "@/data/posts";
+
+const PAGE_SIZE = 6;
 
 interface FeedState {
   posts: Post[];
@@ -21,20 +24,15 @@ export const useFeedStore = create<FeedState>()((set, get) => ({
 
   fetchFeed: async () => {
     set({ isLoading: true, page: 1 });
-    try {
-      const res = await fetch("/api/posts?page=1");
-      if (!res.ok) throw new Error("Failed to fetch feed");
+    await new Promise((r) => setTimeout(r, 300));
 
-      const json = await res.json();
-      set({
-        posts: json.data ?? [],
-        hasMore: json.pagination?.hasNext ?? false,
-        page: 1,
-        isLoading: false,
-      });
-    } catch {
-      set({ isLoading: false });
-    }
+    const firstPage = mockPosts.slice(0, PAGE_SIZE);
+    set({
+      posts: firstPage,
+      hasMore: mockPosts.length > PAGE_SIZE,
+      page: 1,
+      isLoading: false,
+    });
   },
 
   fetchMore: async () => {
@@ -43,21 +41,18 @@ export const useFeedStore = create<FeedState>()((set, get) => ({
 
     const nextPage = page + 1;
     set({ isLoading: true });
+    await new Promise((r) => setTimeout(r, 300));
 
-    try {
-      const res = await fetch(`/api/posts?page=${nextPage}`);
-      if (!res.ok) throw new Error("Failed to fetch more posts");
+    const start = (nextPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    const nextPosts = mockPosts.slice(start, end);
 
-      const json = await res.json();
-      set((state) => ({
-        posts: [...state.posts, ...(json.data ?? [])],
-        hasMore: json.pagination?.hasNext ?? false,
-        page: nextPage,
-        isLoading: false,
-      }));
-    } catch {
-      set({ isLoading: false });
-    }
+    set((state) => ({
+      posts: [...state.posts, ...nextPosts],
+      hasMore: end < mockPosts.length,
+      page: nextPage,
+      isLoading: false,
+    }));
   },
 
   likePost: async (id: string) => {
@@ -79,17 +74,6 @@ export const useFeedStore = create<FeedState>()((set, get) => ({
           : p
       ),
     });
-
-    try {
-      const res = await fetch(`/api/posts/${id}/like`, { method: "POST" });
-      if (!res.ok) throw new Error("Failed to toggle like");
-    } catch {
-      set({
-        posts: get().posts.map((p) =>
-          p.id === id ? { ...p, isLiked: wasLiked, likesCount: prevLikes } : p
-        ),
-      });
-    }
   },
 
   savePost: async (id: string) => {
@@ -104,40 +88,15 @@ export const useFeedStore = create<FeedState>()((set, get) => ({
         p.id === id ? { ...p, isSaved: !wasSaved } : p
       ),
     });
-
-    try {
-      const res = await fetch(`/api/posts/${id}/save`, { method: "POST" });
-      if (!res.ok) throw new Error("Failed to toggle save");
-    } catch {
-      set({
-        posts: get().posts.map((p) =>
-          p.id === id ? { ...p, isSaved: wasSaved } : p
-        ),
-      });
-    }
   },
 
-  addComment: async (id: string, content: string) => {
-    try {
-      const res = await fetch(`/api/posts/${id}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
-      });
-
-      if (!res.ok) throw new Error("Failed to add comment");
-
-      const data = await res.json();
-
-      set({
-        posts: get().posts.map((p) =>
-          p.id === id
-            ? { ...p, commentsCount: p.commentsCount + 1 }
-            : p
-        ),
-      });
-    } catch {
-      throw new Error("Failed to add comment");
-    }
+  addComment: async (id: string, _content: string) => {
+    set({
+      posts: get().posts.map((p) =>
+        p.id === id
+          ? { ...p, commentsCount: p.commentsCount + 1 }
+          : p
+      ),
+    });
   },
 }));

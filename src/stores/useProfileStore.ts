@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import type { Post } from "@/types";
+import { allUsers, isFollowing } from "@/data/users";
+import { mockPosts } from "@/data/posts";
 
 interface UserProfile {
   id: string;
@@ -30,30 +32,50 @@ export const useProfileStore = create<ProfileState>()((set, get) => ({
 
   fetchProfile: async (username: string) => {
     set({ isLoading: true });
-    try {
-      const res = await fetch(`/api/users/${username}`);
-      if (!res.ok) throw new Error("Failed to fetch profile");
+    await new Promise((r) => setTimeout(r, 300));
 
-      const json = await res.json();
-      set({ profile: json.data ?? null, isLoading: false });
-    } catch {
-      set({ isLoading: false });
+    const user = allUsers.find(
+      (u) => u.username.toLowerCase() === username.toLowerCase()
+    );
+
+    if (!user) {
+      set({ profile: null, isLoading: false });
+      return;
     }
+
+    const profileData: UserProfile = {
+      id: user.id,
+      username: user.username,
+      fullName: user.displayName,
+      bio: user.bio ?? "",
+      avatar: user.avatarUrl,
+      postsCount: user.postsCount ?? 0,
+      followersCount: user.followersCount ?? 0,
+      followingCount: user.followingCount ?? 0,
+      isFollowing: isFollowing("current-user", user.id),
+      isOwnProfile: user.id === "current-user",
+    };
+
+    set({ profile: profileData, isLoading: false });
   },
 
   fetchUserPosts: async (username: string) => {
-    try {
-      const res = await fetch(`/api/users/${username}/posts`);
-      if (!res.ok) throw new Error("Failed to fetch user posts");
+    await new Promise((r) => setTimeout(r, 300));
 
-      const json = await res.json();
-      set({ userPosts: json.data ?? [] });
-    } catch {
-      // silently fail
+    const user = allUsers.find(
+      (u) => u.username.toLowerCase() === username.toLowerCase()
+    );
+
+    if (!user) {
+      set({ userPosts: [] });
+      return;
     }
+
+    const posts = mockPosts.filter((p) => p.authorId === user.id);
+    set({ userPosts: posts });
   },
 
-  toggleFollow: async (username: string) => {
+  toggleFollow: async (_username: string) => {
     const { profile } = get();
     if (!profile) return;
 
@@ -67,23 +89,5 @@ export const useProfileStore = create<ProfileState>()((set, get) => ({
         followersCount: wasFollowing ? prevFollowers - 1 : prevFollowers + 1,
       },
     });
-
-    try {
-      const res = await fetch(`/api/users/${username}/follow`, {
-        method: "POST",
-      });
-      if (!res.ok) throw new Error("Failed to toggle follow");
-    } catch {
-      const currentProfile = get().profile;
-      if (currentProfile) {
-        set({
-          profile: {
-            ...currentProfile,
-            isFollowing: wasFollowing,
-            followersCount: prevFollowers,
-          },
-        });
-      }
-    }
   },
 }));

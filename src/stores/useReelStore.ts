@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Reel } from "@/types";
+import { mockReels } from "@/data/reels";
 
 interface ReelState {
   reels: Reel[];
@@ -17,15 +18,8 @@ export const useReelStore = create<ReelState>()((set, get) => ({
 
   fetchReels: async () => {
     set({ isLoading: true });
-    try {
-      const res = await fetch("/api/reels");
-      if (!res.ok) throw new Error("Failed to fetch reels");
-
-      const json = await res.json();
-      set({ reels: json.data ?? [], isLoading: false });
-    } catch {
-      set({ isLoading: false });
-    }
+    await new Promise((r) => setTimeout(r, 300));
+    set({ reels: mockReels, isLoading: false });
   },
 
   likeReel: async (id: string) => {
@@ -47,17 +41,6 @@ export const useReelStore = create<ReelState>()((set, get) => ({
           : r
       ),
     });
-
-    try {
-      const res = await fetch(`/api/reels/${id}/like`, { method: "POST" });
-      if (!res.ok) throw new Error("Failed to toggle like");
-    } catch {
-      set({
-        reels: get().reels.map((r) =>
-          r.id === id ? { ...r, isLiked: wasLiked, likesCount: prevLikes } : r
-        ),
-      });
-    }
   },
 
   setActiveIndex: (index: number) => {

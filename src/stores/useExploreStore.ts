@@ -1,5 +1,14 @@
 import { create } from "zustand";
 import type { Post, User } from "@/types";
+import { mockPosts } from "@/data/posts";
+import { allUsers } from "@/data/users";
+import { mockCategories } from "@/data/categories";
+
+/** Map category slugs to tags that belong in that category */
+const categoryTagMap: Record<string, string[]> = {};
+for (const cat of mockCategories) {
+  categoryTagMap[cat.slug] = cat.trendingTags;
+}
 
 interface ExploreState {
   posts: Post[];
@@ -23,21 +32,19 @@ export const useExploreStore = create<ExploreState>()((set, get) => ({
   fetchExplore: async (category?: string) => {
     const cat = category || get().activeCategory;
     set({ isLoading: true });
+    await new Promise((r) => setTimeout(r, 300));
 
-    try {
-      const params = new URLSearchParams();
-      if (cat && cat !== "all") {
-        params.set("category", cat);
-      }
-
-      const res = await fetch(`/api/explore?${params.toString()}`);
-      if (!res.ok) throw new Error("Failed to fetch explore");
-
-      const json = await res.json();
-      set({ posts: json.data ?? [], activeCategory: cat, isLoading: false });
-    } catch {
-      set({ isLoading: false });
+    let filtered: Post[];
+    if (!cat || cat === "all") {
+      filtered = [...mockPosts];
+    } else {
+      const tagsForCategory = categoryTagMap[cat] ?? [];
+      filtered = mockPosts.filter((post) =>
+        post.tags?.some((tag) => tagsForCategory.includes(tag))
+      );
     }
+
+    set({ posts: filtered, activeCategory: cat, isLoading: false });
   },
 
   search: async (query: string) => {
@@ -49,18 +56,16 @@ export const useExploreStore = create<ExploreState>()((set, get) => ({
     }
 
     set({ isLoading: true });
+    await new Promise((r) => setTimeout(r, 300));
 
-    try {
-      const res = await fetch(
-        `/api/explore/search?q=${encodeURIComponent(query)}`
-      );
-      if (!res.ok) throw new Error("Failed to search");
+    const q = query.toLowerCase();
+    const results = allUsers.filter(
+      (u) =>
+        u.username.toLowerCase().includes(q) ||
+        u.displayName.toLowerCase().includes(q)
+    );
 
-      const json = await res.json();
-      set({ searchResults: json.data ?? [], isLoading: false });
-    } catch {
-      set({ isLoading: false });
-    }
+    set({ searchResults: results, isLoading: false });
   },
 
   setCategory: (category: string) => {

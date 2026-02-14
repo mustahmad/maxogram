@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { StoryGroup } from "@/types";
+import { mockStoryGroups } from "@/data/stories";
 
 interface StoryState {
   storyGroups: StoryGroup[];
@@ -21,15 +22,8 @@ export const useStoryStore = create<StoryState>()((set, get) => ({
   isViewerOpen: false,
 
   fetchStories: async () => {
-    try {
-      const res = await fetch("/api/stories");
-      if (!res.ok) throw new Error("Failed to fetch stories");
-
-      const json = await res.json();
-      set({ storyGroups: json.data ?? [] });
-    } catch {
-      // silently fail — stories are non-critical
-    }
+    await new Promise((r) => setTimeout(r, 300));
+    set({ storyGroups: mockStoryGroups });
   },
 
   openViewer: (groupIndex: number) => {
@@ -87,19 +81,13 @@ export const useStoryStore = create<StoryState>()((set, get) => ({
   },
 
   markViewed: async (storyId: string) => {
-    try {
-      await fetch(`/api/stories/${storyId}/view`, { method: "POST" });
-
-      set({
-        storyGroups: get().storyGroups.map((group) => ({
-          ...group,
-          stories: group.stories.map((story) =>
-            story.id === storyId ? { ...story, isViewed: true } : story
-          ),
-        })),
-      });
-    } catch {
-      // silently fail — view tracking is non-critical
-    }
+    set({
+      storyGroups: get().storyGroups.map((group) => ({
+        ...group,
+        stories: group.stories.map((story) =>
+          story.id === storyId ? { ...story, isViewed: true } : story
+        ),
+      })),
+    });
   },
 }));
